@@ -1,20 +1,19 @@
 {
-    "version": 2,
-    "builds": [
-      {
-        "src": "Dockerfile",
-        "use": "@vercel/docker"
-      }
-    ],
-    "routes": [
-      {
-        "src": "/(.*)",
-        "dest": "/"
-      }
-    ],
-    "env": {
-      "API_KEY": "AIzaSyD0oK4Xv5TiBFN7vpRIkUoY_ykTHTiP1RA",
-      "FIREBASE_CREDENTIALS": "/config/firebase-credentials.json" 
+  "version": 2,
+  "builds": [
+    {
+      "src": "Dockerfile",
+      "use": "vercel/docker"  
     }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/"
+    }
+  ],
+  "env": {
+    "API_KEY": "AIzaSyD0oK4Xv5TiBFN7vpRIkUoY_ykTHTiP1RA",
+    "FIREBASE_CREDENTIALS": "/config/firebase-credentials.json"
   }
-  
+}

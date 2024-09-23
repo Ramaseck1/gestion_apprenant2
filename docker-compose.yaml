@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  api:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8083:80"
+    environment:
+      # Tes variables d'environnement spécifiques à l'API
+      API_KEY: "AIzaSyD0oK4Xv5TiBFN7vpRIkUoY_ykTHTiP1RA"
+      FIREBASE_CREDENTIALS: "/config/firebase-credentials.json" # Exemple de chemin vers les credentials Firebase
+    volumes:
+      - ./firebase:/app/firebase # Pour inclure ton fichier de credentials Firebase dans le conteneur

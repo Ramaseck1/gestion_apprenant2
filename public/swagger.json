@@ -1,0 +1,1272 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API User Management",
+    "version": "1.0.0"
+  },
+ "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "email": { "type": "string" },
+          "telephone": { "type": "string" },
+          "nom": { "type": "string" },
+          "prenom": { "type": "string" },
+          "role_id": { "type": "integer" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "integer", "example": 400 },
+          "message": { "type": "string", "example": "Error message" }
+        }
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "integer", "example": 200 },
+          "data": {
+            "type": "object",
+            "properties": {
+              "user": { "$ref": "#/components/schemas/User" },
+              "token": { "type": "string", "example": "jwt-token" }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:7000/api"
+    }
+  ],
+  "paths": {
+    "/users/store": {
+      "post": {
+        "summary": "Create a new user",
+        "operationId": "storeUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string", "minLength": 6 },
+                  "telephone": { "type": "string" },
+                  "role_id": { "type": "string" },
+                  "photo": { "type": "string", "format": "binary" },
+                  "nom": { "type": "string" },
+                  "prenom": { "type": "string" },
+                  "adresse": { "type": "string" }
+                },
+                "required": ["email", "password", "telephone", "role_id"]
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "User created successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": { "type": "string" },
+                      "data": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            },
+            "403": {
+              "description": "Authorization error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": { "type": "string" },
+                      "message": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": { "type": "string" },
+                      "message": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ]
+        }
+      }
+    },
+    "/users/lister": {
+      "get": {
+        "summary": "List all users",
+        "operationId": "listUsers",
+        "responses": {
+          "200": {
+            "description": "Successful response with user data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "data": {
+                      "type": "array",
+                      "items": { "type": "object" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ]
+        }
+      }
+    },
+    "/users/{firebaseUid}": {
+      "put": {
+        "summary": "Update a user",
+        "operationId": "updateUser",
+        "parameters": [
+          {
+            "name": "firebaseUid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "telephone": { "type": "string" },
+                  "role_id": { "type": "string" },
+                  "photo": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/users/filter/{roleId}": {
+      "get": {
+        "summary": "Filter users by role",
+        "operationId": "filterByRole",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Filtered users list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "data": {
+                      "type": "array",
+                      "items": { "type": "object" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ]
+        }
+      }
+    },
+    "/export-users": {
+      "get": {
+        "summary": "Export users to Excel",
+        "operationId": "exportUsers",
+        "responses": {
+          "200": {
+            "description": "Users exported successfully",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ]
+        }
+      }
+    },
+    "/export-users-pdf": {
+      "get": {
+        "summary": "Export users to PDF",
+        "operationId": "exportUsersPDF",
+        "responses": {
+          "200": {
+            "description": "Users exported successfully",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ]
+        }
+      }
+    }
+  ,
+  
+  "/users": {
+  "post": {
+    "summary": "Register a new user",
+    "operationId": "registerUser",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "multipart/form-data": {
+          "schema": {
+            "required": [
+              "nom",
+              "prenom",
+              "adresse",
+              "telephone",
+              "email",
+              "password",
+              "role_id"
+            ],
+            "properties": {
+              "nom": {
+                "type": "string",
+                "example": "John"
+              },
+              "prenom": {
+                "type": "string",
+                "example": "Doe"
+              },
+              "adresse": {
+                "type": "string",
+                "example": "123 Rue Exemple"
+              },
+              "telephone": {
+                "type": "string",
+                "example": "771234567"
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "example": "user@example.com"
+              },
+              "password": {
+                "type": "string",
+                "format": "password",
+                "example": "password"
+              },
+              "role_id": {
+                "type": "integer",
+                "example": 1
+              },
+              "photo": {
+                "type": "string",
+                "format": "binary",  
+                "description": "The user's profile photo"
+              },
+              "statut": {
+                "type": "string",
+                "example": "Inactif"
+              }
+            },
+            "type": "object"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "User registered successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "properties": {
+                "status": {
+                  "type": "integer",
+                  "example": 201
+                },
+                "data": {
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    },
+                    "token": {
+                      "type": "string",
+                      "example": "your-jwt-token"
+                    }
+                  },
+                  "type": "object"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "User Registered Successfully"
+                }
+              },
+              "type": "object"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validation Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "properties": {
+                "status": {
+                  "type": "integer",
+                  "example": 400
+                },
+                "data": {
+                  "type": "null"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Validation Error"
+                }
+              },
+              "type": "object"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+
+
+    "/login": {
+      "post": {
+        "summary": "User login",
+        "operationId": "loginUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string", "minLength": 6 }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": { "type": "string" }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Invalid credentials",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+
+
+    "/referentiels": {
+      "post": {
+        "summary": "Créer un nouveau référentiel",
+        "operationId": "createReferentiel",
+        "tags": ["Referentiel"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "Code unique du référentiel"
+                  },
+                  "libelle": {
+                    "type": "string",
+                    "description": "Libellé unique du référentiel"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Description du référentiel"
+                  },
+                  "photo": {
+                    "type": "string",
+                    "description": "URL de la photo (facultatif)"
+                  },
+                  "competences": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "nom": {
+                          "type": "string",
+                          "description": "Nom de la compétence"
+                        },
+                        "description": {
+                          "type": "string",
+                          "description": "Description de la compétence"
+                        },
+                        "duree_acquisition": {
+                          "type": "integer",
+                          "description": "Durée d'acquisition de la compétence (en jours)"
+                        },
+                        "modules": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "nom": {
+                                "type": "string",
+                                "description": "Nom du module"
+                              },
+                              "description": {
+                                "type": "string",
+                                "description": "Description du module"
+                              },
+                              "duree_acquisition": {
+                                "type": "integer",
+                                "description": "Durée d'acquisition du module (en jours)"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "required": ["code", "libelle", "description", "competences"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Référentiel créé avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "ID du référentiel créé"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Erreur de validation"
+          }
+        }
+      },
+      "get": {
+        "summary": "Lister tous les référentiels",
+        "operationId": "getReferentiels",
+        "tags": ["Referentiel"],
+        "responses": {
+          "200": {
+            "description": "Liste des référentiels",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "code": {
+                        "type": "string"
+                      },
+                      "libelle": {
+                        "type": "string"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "photo": {
+                        "type": "string"
+                      },
+                      "competences": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "nom": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "duree_acquisition": {
+                              "type": "integer"
+                            },
+                            "modules": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "nom": {
+                                    "type": "string"
+                                  },
+                                  "description": {
+                                    "type": "string"
+                                  },
+                                  "duree_acquisition": {
+                                    "type": "integer"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/referentiels/{id}": {
+      "get": {
+        "summary": "Récupérer un référentiel par ID",
+        "operationId": "getReferentielById",
+        "tags": ["Referentiel"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Référentiel trouvé",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Référentiel non trouvé"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Mettre à jour un référentiel",
+        "operationId": "updateReferentiel",
+        "tags": ["Referentiel"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "libelle": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "photo": {
+                    "type": "string"
+                  },
+                  "competences": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "nom": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "duree_acquisition": {
+                          "type": "integer"
+                        },
+                        "modules": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "nom": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "duree_acquisition": {
+                                "type": "integer"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Référentiel mis à jour avec succès"
+          },
+          "404": {
+            "description": "Référentiel non trouvé"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Supprimer un référentiel",
+        "operationId": "deleteReferentiel",
+        "tags": ["Referentiel"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Référentiel supprimé avec succès"
+          },
+          "404": {
+            "description": "Référentiel non trouvé"
+          }
+        }
+      }
+    },
+    "/archive/referentiels": {
+      "get": {
+        "summary": "Lister les référentiels archivés",
+        "operationId": "listArchivedReferentiels",
+        "tags": ["Referentiel"],
+        "responses": {
+          "200": {
+            "description": "Liste des référentiels archivés",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "code": {
+                        "type": "string"
+                      },
+                      "libelle": {
+                        "type": "string"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "photo": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+,
+
+
+    "/promotions": {
+      "post": {
+        "summary": "Créer une nouvelle promotion",
+        "description": "Créer une promotion avec des référentiels et des apprenants.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "libelle": {
+                  "type": "string",
+                  "example": "Promotion 2024"
+                },
+                "date_debut": {
+                  "type": "string",
+                  "format": "date",
+                  "example": "2024-01-01"
+                },
+                "date_fin": {
+                  "type": "string",
+                  "format": "date",
+                  "example": "2024-06-30"
+                },
+                "duree": {
+                  "type": "integer",
+                  "example": 6
+                },
+                "photo": {
+                  "type": "string",
+                  "example": "url_to_cover_photo.jpg"
+                },
+                "referentiels": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "infos": {
+                        "type": "string",
+                        "example": "Infos Référentiel 1"
+                      },
+                      "apprenants": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "nom": {
+                              "type": "string",
+                              "example": "Dupont"
+                            },
+                            "prenom": {
+                              "type": "string",
+                              "example": "Jean"
+                            },
+                            "adresse": {
+                              "type": "string",
+                              "example": "123 Rue Exemple"
+                            },
+                            "email": {
+                              "type": "string",
+                              "example": "jean.dupont@example.com"
+                            },
+                            "password": {
+                              "type": "string",
+                              "example": "password123"
+                            },
+                            "telephone": {
+                              "type": "string",
+                              "example": "771234567"
+                            },
+                            "role": {
+                              "type": "string",
+                              "example": "Apprenant"
+                            },
+                            "statut": {
+                              "type": "string",
+                              "example": "Actif"
+                            },
+                            "photo": {
+                              "type": "string",
+                              "example": "url_to_photo.jpg"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "required": ["libelle", "date_debut"]
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Promotion créée avec succès.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "example": "promotion_id"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "get": {
+        "summary": "Lister les promotions",
+        "description": "Récupérer toutes les promotions.",
+        "responses": {
+          "200": {
+            "description": "Liste des promotions.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Promotion"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/promotions/{id}": {
+      "get": {
+        "summary": "Récupérer une promotion par ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Détails de la promotion.",
+            "schema": {
+              "$ref": "#/definitions/Promotion"
+            }
+          },
+          "404": {
+            "description": "Promotion non trouvée."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Modifier une promotion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "libelle": {
+                  "type": "string"
+                },
+                "date_fin": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "photo": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Promotion modifiée avec succès."
+          },
+          "404": {
+            "description": "Promotion non trouvée."
+          }
+        }
+      }
+    },
+    "/promotions/{id}/referentiels": {
+      "patch": {
+        "summary": "Ajouter ou retirer un référentiel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "referentielId": {
+                  "type": "string"
+                },
+                "action": {
+                  "type": "string",
+                  "enum": ["ajouter", "retirer"]
+                }
+              },
+              "required": ["referentielId", "action"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Référentiel ajouté ou retiré avec succès."
+          },
+          "404": {
+            "description": "Promotion ou référentiel non trouvé."
+          }
+        }
+      }
+    },
+    "/promotions/{id}/etat": {
+      "patch": {
+        "summary": "Changer l'état d'une promotion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "etat": {
+                  "type": "string",
+                  "enum": ["Actif", "Cloturer", "Inactif"]
+                }
+              },
+              "required": ["etat"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "État de la promotion modifié avec succès."
+          },
+          "404": {
+            "description": "Promotion non trouvée."
+          }
+        }
+      }
+    },
+    "/promotions/encours": {
+      "get": {
+        "summary": "Récupérer la promotion en cours",
+        "responses": {
+          "200": {
+            "description": "Détails de la promotion en cours.",
+            "schema": {
+              "$ref": "#/definitions/Promotion"
+            }
+          }
+        }
+      }
+    },
+    "/promotions/{id}/cloturer": {
+      "patch": {
+        "summary": "Clôturer une promotion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Promotion clôturée avec succès."
+          },
+          "404": {
+            "description": "Promotion non trouvée."
+          }
+        }
+      }
+    },
+    "/promotions/{id}/refentiels": {
+      "get": {
+        "summary": "Lister les référentiels actifs d'une promotion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des référentiels actifs.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "libelle": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Promotion non trouvée."
+          }
+        }
+      }
+    },
+    "/promotions/{id}/stats": {
+      "get": {
+        "summary": "Afficher les statistiques de la promotion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statistiques de la promotion.",
+            "schema": {
+            
+              "type": "object",
+              "properties": {
+                "nombre_apprenants": {
+                  "type": "integer"
+                },
+                "nombre_referentiels": {
+                  "type": "integer"
+                },
+                "duree_totale": {
+                  "type": "integer"
+                }
+              
+            }
+          }
+          },
+          "404": {
+            "description": "Promotion non trouvée."
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Promotion": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "libelle": {
+          "type": "string"
+        },
+        "date_debut": {
+          "type": "string",
+          "format": "date"
+        },
+        "date_fin": {
+          "type": "string",
+          "format": "date"
+        },
+        "duree": {
+          "type": "integer"
+        },
+        "photo": {
+          "type": "string"
+        },
+        "referentiels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "infos": {
+                "type": "string"
+              },
+              "apprenants": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Apprenant"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Apprenant": {
+      "type": "object",
+      "properties": {
+        "nom": {
+          "type": "string"
+        },
+        "prenom": {
+          "type": "string"
+        },
+        "adresse": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "telephone": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "statut": {
+          "type": "string"
+        },
+        "photo": {
+          "type": "string"
+        }
+      }
+    }
+  }
+  }
+  
+
+
+  

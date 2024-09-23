@@ -44,4 +44,4 @@ RUN npm run build
 RUN chown -R application:application .
 
 # Dans ton Dockerfile
-COPY public/swagger.json /app/public/swagger.json
+COPY public/swagger/index.html /app/public/swagger/index.html

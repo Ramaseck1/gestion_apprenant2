@@ -11,7 +11,7 @@
         "laravel-vite-plugin": "^1.0.0",
         "vite": "^5.0.0"
     },
-   "dependencies": {
-  "docker": "https://github.com/vercel/docker.git"
-}
+    "dependencies": {
+        "vercel": "^32.3.0"
+    }
 }

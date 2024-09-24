@@ -7,7 +7,7 @@ use Hash;
 
 class PostgreSQLUserService implements UserServiceInterface
 {
-    public function create(array $data)
+    public function createuser(array $data)
     {
         return User::create($data);
     }

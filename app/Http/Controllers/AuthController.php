@@ -75,7 +75,7 @@ public function exportUsers()
     $firebaseUid = null;
     
     if ($request->hasFile('photo')) {
-        $firebaseUid = $this->firebase->create($data);
+        $firebaseUid = $this->firebase->register($data);
     }
     
     // Vérifier si $firebaseUid a bien été défini
@@ -125,7 +125,7 @@ public function exportUsers()
     {
         $data = $request->validated();
     
-        // Récupérer le token depuis l'en-tête Authorization (Bearer token)
+     /*    // Récupérer le token depuis l'en-tête Authorization (Bearer token)
         $token = $request->bearerToken();
     
         try {
@@ -139,31 +139,24 @@ public function exportUsers()
 if (!isset($currentUser['role_id'])) {
     return response()->json(['status' => 'error', 'message' => 'Role ID not found.'], 403);
 }
-
+ */
             
             // Autorisation
-            if (Gate::allows('create', [$currentUser, $data['role_id']])) {
+      /*       if (Gate::allows('create', [$currentUser, $data['role_id']])) {
                 // L'utilisateur peut créer
-                  $userId = $this->firebase->create($data);
-            } else {
-                // L'utilisateur ne peut pas créer
-            }
-            
-            // Créer l'utilisateur dans Firebase
-          
+                } else {
+                    // L'utilisateur ne peut pas créer
+            } */
+           
+           // Créer l'utilisateur dans Firebase
+           
+           $userId = $this->firebase->createuser($data);
     
             return response()->json([
                 'status' => 'success',
                 'data' => $userId,
             ]);
-        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 403);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-            ], 500);
-        }
+       
     }
     
     

@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: laravel-app
+    env: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    region: oregon
+    envVars:
+      - key: APP_KEY
+        sync: false
+        generateValue: true
+      - key: APP_ENV
+        value: production
+      - key: API_KEY
+        value: "AIzaSyD0oK4Xv5TiBFN7vpRIkUoY_ykTHTiP1RA"
+      - key: FIREBASE_CREDENTIALS
+        value: "/config/firebase-credentials.json"
+    buildCommand: |
+      composer install --no-interaction --optimize-autoloader --no-dev
+      php artisan key:generate
+      php artisan config:cache
+      npm install
+      npm run build
+    startCommand: php artisan serve --host 0.0.0.0 --port 10000
+    healthCheckPath: "/health"
+    disk:
+      name: persistent-disk
+      mountPath: /var/lib/mysql
+      sizeGB: 10

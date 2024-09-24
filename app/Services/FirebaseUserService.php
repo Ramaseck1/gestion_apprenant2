@@ -49,8 +49,97 @@ class FirebaseUserService implements UserServiceInterface
         return true; // Le champ est unique
     }
 
-    public function create(array $data)
+    public function register(array $data)
     {
+      
+        // Vérifier l'unicité de l'email et du téléphone
+        if (!$this->checkUnique('email', $data['email'])) {
+            throw new \Exception('Email already exists.');
+        }
+    
+        if (!$this->checkUnique('telephone', $data['telephone'])) {
+            throw new \Exception('Phone number already exists.');
+        }
+    
+        // Hacher le mot de passe avant de le stocker
+        if (isset($data['password'])) {
+            $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
+        } else {
+            throw new \Exception('Password is required.');
+        }
+        
+        // Créer un utilisateur dans Firebase Authentication
+        $firebaseUser = $this->auth->createUser([
+            'email' => $data['email'],
+            'password' => $data['password'], // Plain password for Firebase Authentication
+        ]);
+        
+        // Obtenir l'UID généré par Firebase
+        $firebaseUid = $firebaseUser->uid;
+            // Téléverser la photo dans Firebase Storage (si présente)
+    if (isset($data['photo'])) {
+        $file = $data['photo']; // Le fichier à téléverser
+        $filePath = 'users/' . $firebaseUid . '/' . $file->getClientOriginalName();
+
+        // Téléverser le fichier dans Firebase Storage
+        $bucket = $this->storage->getBucket();
+        $uploadedFile = $bucket->upload(
+            fopen($file->getPathname(), 'r'),
+            ['name' => $filePath]
+        );
+
+        // Obtenir l'URL publique du fichier téléversé
+        $photoUrl = $uploadedFile->signedUrl(new \DateTime('9999-12-31'));
+    } else {
+        $photoUrl = ''; // Aucun fichier téléversé
+    }
+
+
+    
+        // Créer un tableau utilisateur avec les données hachées pour Realtime Database
+        $userArray = [
+            'email' => $data['email'],
+            'telephone' => $data['telephone'],
+            'password' => $hashedPassword, // Stocker le mot de passe haché dans la Realtime Database
+            'photoUrl' => $photoUrl, // URL de la photo téléversée
+            'role_id' => $data['role_id'], // URL de la photo téléversée
+
+        ];
+    
+        Log::info('Création de l\'utilisateur', ['firebase_uid' => $firebaseUid]);
+
+        // Ajouter l'utilisateur dans Firebase Realtime Database
+        $reference = $this->database->getReference('users/' . $firebaseUid);
+        $reference->set($userArray);
+    
+        // Ajouter l'utilisateur dans la base de données locale
+        $user = new User();
+        $user->firebase_uid = $firebaseUid; // Enregistrer l'UID Firebase
+        $user->email = $data['email'];
+        $user->nom = $data['nom'] ?? 'NomParDefaut';
+        $user->prenom = $data['prenom'] ?? 'PrenomParDefaut';
+        $user->adresse = $data['adresse'] ?? 'AdresseParDefaut';
+        $user->telephone = $data['telephone'];
+        $user->password = $hashedPassword; // Mot de passe haché
+        $user->role_id = $data['role_id']; // Utiliser le role_id passé dans les données
+        $user->photo = $data['photo'] ?? '';
+        $user->statut = $data['statut'] ?? 'Inactif';
+        $user->save();  
+        try {
+            $user->save();
+            Log::info('Utilisateur enregistré avec succès', ['user' => $user]);
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de l\'enregistrement de l\'utilisateur', ['error' => $e->getMessage()]);
+        }
+        
+        return $firebaseUid; // Retourne l'identifiant Firebase (UID)
+    }
+
+    public function createuser(array $data)
+    {
+
+        $this->authorize(['Admin', 'Manager', 'CM'], $data);
+
       
         // Vérifier l'unicité de l'email et du téléphone
         if (!$this->checkUnique('email', $data['email'])) {
@@ -186,6 +275,8 @@ class FirebaseUserService implements UserServiceInterface
 
     public function listUsers()
     {
+        $this->authorize(['Admin', 'Manager', 'CM']);
+
         $reference = $this->database->getReference('users');
         $snapshot = $reference->getSnapshot();
         return $snapshot->getValue();
@@ -194,6 +285,9 @@ class FirebaseUserService implements UserServiceInterface
 
     public function filterByRole($roleId)
 {
+
+    $this->authorize(['Admin', 'Manager', 'CM']);
+
     $reference = $this->database->getReference('users');
     $snapshot = $reference->getSnapshot();
     $users = $snapshot->getValue();
@@ -227,25 +321,32 @@ public function updateUser($firebaseUid, array $data)
 }
 
 
-
-protected function authorize($roleRequired)
+protected function authorize($roleRequired , $data = [])
 {
     $user = request()->attributes->get('user'); // Récupérer l'utilisateur de la requête
 
-    
     Log::info('Authorization check:', ['user' => $user]);
     Log::info('User role check:', ['role_id' => $user->role_id, 'required_roles' => $roleRequired]);
-
 
     if (!$user || !$user->role_id) {
         throw new \Exception('Unauthorized action.');
     }
-    
+
     $role = Role::find($user->role_id);
     if (!$role || !in_array($role->name, (array)$roleRequired)) {
         throw new \Exception('Unauthorized action.');
     }
+
+    // Vérification des règles selon le rôle
+    if ($role->name === 'Admin') {
+        // Logique spécifique aux admins
+    } elseif ($role->name === 'Manager') {
+        // Logique spécifique aux managers
+    } elseif ($role->name === 'CM') {
+        // Logique spécifique aux CM
+    }
 }
+
 
 
 

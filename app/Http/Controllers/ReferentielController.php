@@ -30,12 +30,37 @@ class ReferentielController extends Controller
         $referentielId = $this->referentielService->createReferentiel($data);
         return response()->json(['id' => $referentielId], 201);
     }
-
-    public function index()
+    public function index(Request $request)
     {
-        $referentiels = $this->referentielService->getReferentiels();
-        return response()->json($referentiels);
+        $validFilters = ['actif', 'inactif']; // Liste des filtres valides
+    
+        // Récupérer le filtre depuis les paramètres de requête
+        $filter = $request->query('filter', null);
+    
+        // Si un filtre est fourni et qu'il n'est pas valide, retourner une erreur
+        if ($filter && !in_array(strtolower($filter), $validFilters)) {
+            return response()->json([
+                'error' => 'Filtre invalide. Les filtres valides sont : ' . implode(', ', $validFilters)
+            ], 400); // Retourne une erreur 400 Bad Request
+        }
+    
+        // Selon le filtre demandé, récupérer les référentiels appropriés
+        if ($filter) {
+            $statut = ucfirst(strtolower($filter)); // Mettre le premier caractère en majuscule
+            $referentiels = $this->referentielService->getReferentiels($statut); // 'Actif' ou 'Inactif'
+        } else {
+            $referentiels = $this->referentielService->getReferentiels(); // Tous les référentiels
+        }
+    
+        // Structurer la réponse
+        return response()->json([
+            'referentiels' => $referentiels,
+            'filter' => $filter
+        ]);
     }
+    
+    
+    
 
     public function show($id)
     {
